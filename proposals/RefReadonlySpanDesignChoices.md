@@ -5,7 +5,7 @@ Most of these decisions logically follow from the general directions as discusse
   
 This could also be a good resource when writing a testplan or a spec for these features.
 
-## where `readonly ref` variables are allowed
+## where `ref readonly` variables are allowed
 - `ref readonly` parameters and returns are allowed anywhere where a byval parameters are allowed.
 This includes indexers, operators (including conversions), delegates, lambdas, local functions.  
 - `ref readonly` returns allowed anywhere where `ref` returns are allowed. I.E. indexers, operators (including conversions), delegates, lambdas, local functions, but not in operators.
@@ -78,7 +78,7 @@ class Program
 
 ``` 
 
-## async and spilling
+## async and stack spilling
 - async methods cannot have `ref readonly` parameters or returns 
 - at call sites, unlike `ref` arguments, `ref readonly` arguments never cause spilling related errors. 
 User does not specify `ref` or `out` and as such spilling errors would be an unexpected nuisance. 
@@ -95,7 +95,36 @@ async Task<int> M3() {...};
 M1(M2(), await M3()){...} 
 
 ```
-    
+
+## conditional ref expressions (aka ref ternary)
+- the syntax is `condition? ref variable1: ref variable2`
+- ref ternary is an lvalue. Can be passed/returned by reference. Can be assigned to.
+- consequence/alternative operands of ref ternary must be lvalue variables.
+```cs
+// errors
+true? ref 42, ref 2 + 2
+```
+- readonly lvalue operands are allowed resulting in a whole expression being a readonly lvalue.
+ 
+```cs
+// pass by ref
+Method1(ref condition? ref x: ref y);
+
+// pass by out
+Method3(out condition? ref x: ref y);
+
+// assign
+(condition ? ref x: ref y) = 123; 
+
+// assign
+(condition ? ref x: ref y) = 123; 
+
+// return as readonly ref
+ref readonly string MethodDecl() => ref condition? 
+                                         ref string.Empty: 
+                                         ref x;
+```
+
 ## ref structs.
 - The syntax is `ref struct S1{ . .}` 
 - A particular nuance here – `ref` is a **contextual** modifier. For historical reasons `ref` in declarations can also be a ref-type-operator. Therefore it must be contextual to avoid syntactical ambiguities. 

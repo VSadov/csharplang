@@ -173,5 +173,4 @@ NOTE: It is always possible to go from an extension method syntax to a static me
 - `ref readonly` returns are always marked with `modreq(InAttribute)`. This is done to prevent non-enlightened compiler writing through the reference. 
 - `ref structs` are marked with `ObsoleteAttribute(“Types with embedded references are not supported in this version of your compiler.”, error=true)`. This is done to prevent non-enlightened compiler to use the types in unsafe ways.     
 - `ref structs` are poisoned conditionally. If a method is already [Obsolete] or [Deprecated]. We honor the attribute supplied by the user and cannot emit ours without a clash. We may consider giving a warning for such cases, but none is given right now. 
-- poisoning is _mandatory_ for `ref readonly`. We will not import metadata where a method has `IsReadOnlyAttribute` saying that method returns `ref readonly` and yet does not have  `modreq(In)`
 - poisoning is optional when importing metadata to simplify the contract. When overriding "unpoisoned" signatures we will keep them "unpoisoned".

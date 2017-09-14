@@ -1,7 +1,7 @@
  
 # Design decisions made on the way to ref/span features ##
 
-Most of these decisions logically follow from the general directions as discussed in LDM meetings. In many cases they were vetted in LDM meeting by quick checks, in email or in online spec discussions. They are collected here to make sure they are recorded in one place to make sure once more that all stakeholders are ok with this going forward.
+Most of these decisions logically follow from the general directions as discussed in LDM meetings. In many cases they were vetted in LDM meeting by quick checks, in email or in online spec discussions. They are collected here to make sure they are recorded in one place and to make sure once more that all stakeholders are ok with this going forward.
   
 This could also be a good resource when writing a testplan or a spec for these features.
 
@@ -55,7 +55,7 @@ ref readonly string M() => ref "qq";
   
 ## delegate conversions and method type inference
 - since both delegates and lambdas can express RefKind of parameters, the parameter RefKinds of successful conversion candidates must match, similarly to how it works with `ref/out` parameters.
-- similarly to `ref/out`, `ref readonly` is ignored in the course of method type inference inference except for the purposes of variance. 
+- similarly to `ref/out`, `ref readonly` is ignored in the process of method type inference, except for the purposes of variance. 
 - for the purpose of variance `ref readonly` is considered non-variant.
 
 ```C#
@@ -124,6 +124,7 @@ readonly partial struct S1{}
 ```    
 ## readonly structs
 - the syntax is `readonly struct`.
+- `this` is a `ref readonly` variable in all members except constructors.
 - the `readonly` here is a true modifier and can be specified in any order with other modifiers.
 - `readonly` structs cannot have writeable fields, autoprops or field-like events
 
@@ -143,10 +144,10 @@ Doc: https://github.com/dotnet/csharplang/blob/master/proposals/span-safety.md
 
 ## `ref [readonly]` extension methods
 
-- we now support the following 3 cases:
-`T this` – existing case, ok for any kind of receiver type.
-`ref T this` – ok with structs or with generics constrained to structs
-`ref readonly T this` – ok with actual structs, but **not** ok with generic type parameter T regardless of constraints.
+we now support the following 3 cases:
+- `T this` – existing case, ok for any kind of receiver type.  
+- `ref T this` – ok with structs or with generics constrained to structs  
+- `ref readonly T this` – ok with actual structs, but **not** ok with generic type parameter T regardless of constraints.  
 
 The purpose of `ref readonly` is to avoid unnecessary copy, but with generic types, nearly all uses inside the extension will have to be done through interface methods and `ref readonly` receiver will need to be copied every time. As a result the user will actually **increase** implicit copying, possibly dramatically.
 It is never a good thing to use `ref readonly` with generics. We do not want this to lead user on wrong path. 

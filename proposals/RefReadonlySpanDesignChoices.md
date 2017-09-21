@@ -49,13 +49,13 @@ ref readonly string M() => "qq";
 ref readonly string M() => ref "qq";   
 ```
 
-## binding and overload resolution
+## binding and overload resolution and method type inference
 - since the user provides no modifiers at the call site, the signatures will equally match ordinary byval parameters and `ref readonly` parameters. If both are present, an ambiguity error is reported.
+- arguments to `ref readonly` parameters set lower bounds during method type inference.
 - in fact for the purpose of overload resolution `ref readonly` parameters behave as effectively byval parameters.   
   
-## delegate conversions and method type inference
+## delegate conversions
 - since both delegates and lambdas can express RefKind of parameters, the parameter RefKinds of successful conversion candidates must match, similarly to how it works with `ref/out` parameters.
-- similarly to `ref/out`, `ref readonly` is ignored in the process of method type inference, except for the purposes of variance. 
 - for the purpose of variance `ref readonly` is considered non-variant.
 
 ```C#
@@ -127,7 +127,7 @@ ref readonly string MethodDecl() => ref condition?
 
 ## ref structs.
 - The syntax is `ref struct S1{ . .}` 
-- A particular nuance here ñ `ref` is a **contextual** modifier. For historical reasons `ref` in declarations can also be a ref-type-operator. Therefore it must be contextual to avoid syntactical ambiguities. 
+- A particular nuance here ‚Äì `ref` is a **contextual** modifier. For historical reasons `ref` in declarations can also be a ref-type-operator. Therefore it must be contextual to avoid syntactical ambiguities. 
 - The disambiguating context here is "immediately preceeding `struct` keyword".
 - There is an interaction with another contextual keyword in this space - `partial`. We now allow `partial` to be used before `ref struct`.
 ```cs
@@ -174,9 +174,9 @@ Doc: https://github.com/dotnet/csharplang/blob/master/proposals/span-safety.md
 ## `ref [readonly]` extension methods
 
 we now support the following 3 cases:
-- `T this` ñ existing case, ok for any kind of receiver type.  
-- `ref T this` ñ ok with structs or with generics constrained to structs  
-- `ref readonly T this` ñ ok with actual structs, but **not** ok with generic type parameter T regardless of constraints.  
+- `T this` ‚Äì existing case, ok for any kind of receiver type.  
+- `ref T this` ‚Äì ok with structs or with generics constrained to structs  
+- `ref readonly T this` ‚Äì ok with actual structs, but **not** ok with generic type parameter T regardless of constraints.  
 
 The purpose of `ref readonly` is to avoid unnecessary copy, but with generic types, nearly all uses inside the extension will have to be done through interface methods and `ref readonly` receiver will need to be copied every time. As a result the user will actually **increase** implicit copying, possibly dramatically.
 It is never a good thing to use `ref readonly` with generics. We do not want this to lead user on wrong path. 
@@ -200,6 +200,6 @@ NOTE: It is always possible to go from an extension method syntax to a static me
 - `ref readonly` parameters are marked with `modreq(InAttribute)`, except for parameters of methods that cannot be "overriden" with a concrete implementation. This is done to prevent non-enlightened compiler to provide an implementation that does not respect the contract.  
 - Delegate/interface methods are considered "overridable" for the purpose above.
 - `ref readonly` returns are always marked with `modreq(InAttribute)`. This is done to prevent non-enlightened compiler writing through the reference. 
-- `ref structs` are marked with `ObsoleteAttribute(ìTypes with embedded references are not supported in this version of your compiler.î, error=true)`. This is done to prevent non-enlightened compiler to use the types in unsafe ways.     
+- `ref structs` are marked with `ObsoleteAttribute(‚ÄúTypes with embedded references are not supported in this version of your compiler.‚Äù, error=true)`. This is done to prevent non-enlightened compiler to use the types in unsafe ways.     
 - `ref structs` are poisoned conditionally. If a method is already [Obsolete] or [Deprecated]. We honor the attribute supplied by the user and cannot emit ours without a clash. We may consider giving a warning for such cases, but none is given right now. 
 - poisoning is optional when importing metadata to simplify the contract. When overriding "unpoisoned" signatures we will keep them "unpoisoned".
